@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Card, CardBody, Slider, Chip } from '@nextui-org/react';
+import { Card, CardContent } from "@/components/ui/card";
+import { Slider } from "@/components/ui/slider";
+import { Badge } from "@/components/ui/badge";
 import MedicalTextCard from '@/components/MedicalTextCard';
 import AnnotationEditor from '@/components/AnnotationEditor';
 
@@ -17,14 +19,15 @@ export default function AnnotatorPage() {
   const [selectedText, setSelectedText] = useState<MedicalText | null>(null);
   const [confidenceThreshold, setConfidenceThreshold] = useState<number>(0.6);
   const [status, setStatus] = useState<string>('Data ready for annotating');
+  const [samplesToAnnotate, setSamplesToAnnotate] = useState(10);
 
   useEffect(() => {
     fetchTexts();
-  }, [confidenceThreshold]);
+  }, [confidenceThreshold, samplesToAnnotate]);
 
   const fetchTexts = async () => {
     try {
-      const response = await fetch(`/api/medical-text?confidenceThreshold=${confidenceThreshold}`);
+      const response = await fetch(`/api/medical-text?confidenceThreshold=${confidenceThreshold}&numSamples=${samplesToAnnotate}`);
       const data: MedicalText[] = await response.json();
       setTexts(data);
       setSelectedText(data[0] || null);
@@ -68,57 +71,113 @@ export default function AnnotatorPage() {
     }
   };  
 
-  const handleConfidenceThresholdChange = (value: number | number[]) => {
-    setConfidenceThreshold(Array.isArray(value) ? value[0] : value);
+  const handleConfidenceThresholdChange = (value: number[]) => {
+    setConfidenceThreshold(value[0]);
+  };
+
+  const handleSamplesToAnnotateChange = (value: number[]) => {
+    setSamplesToAnnotate(value[0]);
+  };
+
+  const getStatusBadge = () => {
+    if (status === 'Data ready for annotating') {
+      return (
+        <Badge variant="outline" className="text-base bg-blue-50 text-gray-800 border-blue-200">
+          {status}
+        </Badge>
+      );
+    } else if (status === 'Annotation paused') {
+      return (
+        <Badge variant="outline" className="text-base bg-yellow-100 text-yellow-800 border-yellow-300">
+          {status}
+        </Badge>
+      );
+    } else if (status.includes('successfully annotated')) {
+      const confidenceScore = parseFloat(status.match(/\d+\.\d+/)?.[0] || '0');
+      if (confidenceScore <= confidenceThreshold) {
+        return (
+          <Badge variant="outline" className="text-base bg-red-100 text-red-800 border-red-300">
+            {status}
+          </Badge>
+        );
+      } else {
+        return (
+          <Badge variant="outline" className="text-base bg-green-100 text-green-800 border-green-300">
+            {status}
+          </Badge>
+        );
+      }
+    } else {
+      return (
+        <Badge variant="outline" className="text-base bg-blue-100 text-blue-800 border-blue-300">
+          {status}
+        </Badge>
+      );
+    }
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <CardBody>
-            <h2 className="text-2xl font-bold mb-4">Sample Text</h2>
-            {selectedText && (
-              <MedicalTextCard
-                text={selectedText.text}
-                task={selectedText.task}
-                confidence={selectedText.confidence}
-              />
-            )}
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold">Confidence Threshold</h3>
-              <Slider
-                label="Confidence Threshold"
-                step={0.1}
-                maxValue={1}
-                minValue={0}
-                value={confidenceThreshold}
-                onChange={handleConfidenceThresholdChange}
-                className="max-w-md"
-              />
-              <span>{confidenceThreshold.toFixed(1)}</span>
-            </div>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody>
-            <h2 className="text-2xl font-bold mb-4">Annotation Text</h2>
-            {selectedText && (
-              <AnnotationEditor
-                text={selectedText.text}
-                onSave={handleSave}
-              />
-            )}
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold">Status</h3>
-              <Chip color={status.includes("success") ? "success" : "primary"}>{status}</Chip>
-            </div>
-            <div className="mt-2">
-              <h3 className="text-lg font-semibold">Remaining Annotations</h3>
-              <span>{texts.length}</span>
-            </div>
-          </CardBody>
-        </Card>
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="container mx-auto p-4">
+        <div className="grid grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              <h2 className="text-2xl font-bold">Sample Text</h2>
+              {selectedText && (
+                <MedicalTextCard
+                  text={selectedText.text}
+                  task={selectedText.task}
+                  confidence={selectedText.confidence}
+                />
+              )}
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Confidence Threshold</h3>
+                <Slider
+                  min={0}
+                  max={1}
+                  step={0.1}
+                  value={[confidenceThreshold]}
+                  onValueChange={handleConfidenceThresholdChange}
+                  className='mb-2'
+                />
+                <span>{confidenceThreshold.toFixed(1)}</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Samples to Annotate</h3>
+                <Slider
+                  min={10}
+                  max={100}
+                  step={10}
+                  value={[samplesToAnnotate]}
+                  onValueChange={handleSamplesToAnnotateChange}
+                  className='mb-2'
+                />
+                <span>{samplesToAnnotate}</span>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="space-y-4 pt-6">
+              <h2 className="text-2xl font-bold">Annotation</h2>
+              {selectedText && (
+                <AnnotationEditor
+                  text={selectedText.text}
+                  onSave={handleSave}
+                  status={status}
+                  setStatus={setStatus}
+                />
+              )}
+              <div>
+                <h3 className="text-lg font-semibold">Status</h3>
+                {getStatusBadge()}
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Remaining Annotations</h3>
+                <span>{texts.length} / {samplesToAnnotate}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

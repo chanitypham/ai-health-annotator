@@ -1,17 +1,24 @@
-import { Textarea, Button, Chip } from '@nextui-org/react';
+'use client';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useState, useEffect, useRef } from 'react';
 import prand from 'pure-rand';
+import { Loader2 } from "lucide-react";
 
 interface AnnotationEditorProps {
   text: string;
   onSave: (updatedText: string, annotateTime: number, confidenceScore: number) => void;
+  status: string;
+  setStatus: (status: string) => void;
 }
 
-const AnnotationEditor: React.FC<AnnotationEditorProps> = ({ text, onSave }) => {
+const AnnotationEditor: React.FC<AnnotationEditorProps> = ({ text, onSave, status, setStatus }) => {
   const [editableText, setEditableText] = useState(text);
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [seconds, setSeconds] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -39,6 +46,12 @@ const AnnotationEditor: React.FC<AnnotationEditorProps> = ({ text, onSave }) => 
     };
   }, [isRunning, isPaused]);
 
+  useEffect(() => {
+    if (status.includes("successfully")) {
+      setIsSubmitting(false);
+    }
+  }, [status]);
+
   const startTimer = () => {
     setIsRunning(true);
     setIsPaused(false);
@@ -46,12 +59,13 @@ const AnnotationEditor: React.FC<AnnotationEditorProps> = ({ text, onSave }) => 
 
   const pauseTimer = () => {
     setIsPaused(true);
+    setStatus('Annotation paused');
   };
 
   const resumeTimer = () => {
     setIsPaused(false);
+    setStatus('Data ready for annotating');
   };
-
   const stopTimer = () => {
     setIsRunning(false);
     setIsPaused(false);
@@ -60,6 +74,7 @@ const AnnotationEditor: React.FC<AnnotationEditorProps> = ({ text, onSave }) => 
 
   const handleSubmit = () => {
     stopTimer();
+    setIsSubmitting(true);
     const seed = Date.now();
     const rng = prand.xoroshiro128plus(seed);
     const confidenceScore = prand.unsafeUniformIntDistribution(1, 10, rng) / 10;
@@ -67,22 +82,26 @@ const AnnotationEditor: React.FC<AnnotationEditorProps> = ({ text, onSave }) => 
   };
 
   return (
-    <div>
+    <div className="space-y-4">
       <Textarea
         value={editableText}
         onChange={(e) => setEditableText(e.target.value)}
-        label="Annotate Text"
         className="mb-2"
-        isDisabled={!isRunning || isPaused}
+        disabled={!isRunning || isPaused}
       />
-      <div className="flex space-x-2 mb-2">
-        <Button color="primary" onClick={startTimer} disabled={isRunning}>Start</Button>
-        <Button color="secondary" onClick={isPaused ? resumeTimer : pauseTimer} disabled={!isRunning}>
+      <div className="flex space-x-2">
+        <Button onClick={startTimer} disabled={isRunning}>Start</Button>
+        <Button onClick={isPaused ? resumeTimer : pauseTimer} disabled={!isRunning}>
           {isPaused ? 'Resume' : 'Pause'}
         </Button>
-        <Button color="success" onClick={handleSubmit} disabled={!isRunning}>Stop & Submit</Button>
+        <Button onClick={handleSubmit} disabled={!isRunning || isSubmitting}>
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Stop & Submit
+        </Button>
       </div>
-      <Chip>Time: {seconds}s</Chip>
+      <Badge variant="outline" className="text-base bg-primary-100 text-primary-800 border-primary-300">
+        Time: {seconds}s
+      </Badge>
     </div>
   );
 };
