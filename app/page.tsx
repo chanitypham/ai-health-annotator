@@ -50,7 +50,7 @@ export default function AnnotatorPage() {
         });
         const updatedData: MedicalText = await response.json();
         setStatus(`Data successfully annotated with ${updatedData.confidence.toFixed(2)} confidence score`);
-        setTimeout(() => setStatus('Data ready for annotating'), 3000);
+        setTimeout(() => setStatus('Data ready for annotating'), 3000); // 3 seconds, toCheck
   
         setTexts((prevTexts) => {
           let newTexts;
