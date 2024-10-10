@@ -1,101 +1,125 @@
-import Image from "next/image";
+'use client';
+import { useState, useEffect } from 'react';
+import { Card, CardBody, Slider, Chip } from '@nextui-org/react';
+import MedicalTextCard from '@/components/MedicalTextCard';
+import AnnotationEditor from '@/components/AnnotationEditor';
 
-export default function Home() {
+interface MedicalText {
+  id: string;
+  text: string;
+  task: string;
+  confidence: number;
+  annotateTime: number;
+}
+
+export default function AnnotatorPage() {
+  const [texts, setTexts] = useState<MedicalText[]>([]);
+  const [selectedText, setSelectedText] = useState<MedicalText | null>(null);
+  const [confidenceThreshold, setConfidenceThreshold] = useState<number>(0.6);
+  const [status, setStatus] = useState<string>('Data ready for annotating');
+
+  useEffect(() => {
+    fetchTexts();
+  }, [confidenceThreshold]);
+
+  const fetchTexts = async () => {
+    try {
+      const response = await fetch(`/api/medical-text?confidenceThreshold=${confidenceThreshold}`);
+      const data: MedicalText[] = await response.json();
+      setTexts(data);
+      setSelectedText(data[0] || null);
+    } catch (error) {
+      console.error('Failed to fetch texts:', error);
+    }
+  };
+
+  const handleSave = async (updatedText: string, annotateTime: number, confidenceScore: number) => {
+    if (selectedText) {
+      try {
+        const response = await fetch(`/api/medical-text/${selectedText.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: updatedText,
+            annotateTime: annotateTime,
+            confidence: confidenceScore,
+          }),
+        });
+        const updatedData: MedicalText = await response.json();
+        setStatus(`Data successfully annotated with ${updatedData.confidence.toFixed(2)} confidence score`);
+        setTimeout(() => setStatus('Data ready for annotating'), 3000);
+  
+        setTexts((prevTexts) => {
+          let newTexts;
+          if (updatedData.confidence <= confidenceThreshold) {
+            newTexts = [
+              ...prevTexts.slice(1),
+              { ...updatedData, text: updatedText, confidence: confidenceScore, annotateTime }
+            ];
+          } else {
+            newTexts = prevTexts.slice(1);
+          }
+          setSelectedText(newTexts[0] || null);
+          return newTexts;
+        });
+      } catch (error) {
+        console.error('Failed to save:', error);
+      }
+    }
+  };  
+
+  const handleConfidenceThresholdChange = (value: number | number[]) => {
+    setConfidenceThreshold(Array.isArray(value) ? value[0] : value);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+    <div className="container mx-auto p-4">
+      <div className="grid grid-cols-2 gap-4">
+        <Card>
+          <CardBody>
+            <h2 className="text-2xl font-bold mb-4">Sample Text</h2>
+            {selectedText && (
+              <MedicalTextCard
+                text={selectedText.text}
+                task={selectedText.task}
+                confidence={selectedText.confidence}
+              />
+            )}
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold">Confidence Threshold</h3>
+              <Slider
+                label="Confidence Threshold"
+                step={0.1}
+                maxValue={1}
+                minValue={0}
+                value={confidenceThreshold}
+                onChange={handleConfidenceThresholdChange}
+                className="max-w-md"
+              />
+              <span>{confidenceThreshold.toFixed(1)}</span>
+            </div>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody>
+            <h2 className="text-2xl font-bold mb-4">Annotation Text</h2>
+            {selectedText && (
+              <AnnotationEditor
+                text={selectedText.text}
+                onSave={handleSave}
+              />
+            )}
+            <div className="mt-4">
+              <h3 className="text-lg font-semibold">Status</h3>
+              <Chip color={status.includes("success") ? "success" : "primary"}>{status}</Chip>
+            </div>
+            <div className="mt-2">
+              <h3 className="text-lg font-semibold">Remaining Annotations</h3>
+              <span>{texts.length}</span>
+            </div>
+          </CardBody>
+        </Card>
+      </div>
     </div>
   );
 }
