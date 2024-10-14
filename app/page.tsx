@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import MedicalTextCard from '@/components/MedicalTextCard';
 import AnnotationEditor from '@/components/AnnotationEditor';
 import {
-  ClerkProvider,
   SignInButton,
   SignedIn,
   SignedOut,
