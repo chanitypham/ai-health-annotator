@@ -5,6 +5,13 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import MedicalTextCard from '@/components/MedicalTextCard';
 import AnnotationEditor from '@/components/AnnotationEditor';
+import {
+  ClerkProvider,
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton
+} from '@clerk/nextjs'
 
 interface MedicalText {
   id: string;
@@ -117,68 +124,76 @@ export default function AnnotatorPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="container mx-auto p-4">
-        <div className="grid grid-cols-2 gap-4">
-          <Card>
-            <CardContent className="space-y-4 pt-6">
-              <h2 className="text-2xl font-bold">Sample Text</h2>
-              {selectedText && (
-                <MedicalTextCard
-                  text={selectedText.text}
-                  task={selectedText.task}
-                  confidence={selectedText.confidence}
-                />
-              )}
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Confidence Threshold</h3>
-                <Slider
-                  min={0}
-                  max={1}
-                  step={0.1}
-                  value={[confidenceThreshold]}
-                  onValueChange={handleConfidenceThresholdChange}
-                  className='mb-2'
-                />
-                <span>{confidenceThreshold.toFixed(1)}</span>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Samples to Annotate</h3>
-                <Slider
-                  min={10}
-                  max={100}
-                  step={10}
-                  value={[samplesToAnnotate]}
-                  onValueChange={handleSamplesToAnnotateChange}
-                  className='mb-2'
-                />
-                <span>{samplesToAnnotate}</span>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="space-y-4 pt-6">
-              <h2 className="text-2xl font-bold">Annotation</h2>
-              {selectedText && (
-                <AnnotationEditor
-                  text={selectedText.text}
-                  onSave={handleSave}
-                  status={status}
-                  setStatus={setStatus}
-                />
-              )}
-              <div>
-                <h3 className="text-lg font-semibold">Status</h3>
-                {getStatusBadge()}
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold">Remaining Annotations</h3>
-                <span>{texts.length} / {samplesToAnnotate}</span>
-              </div>
-            </CardContent>
-          </Card>
+    <>
+      <SignedOut>
+        <SignInButton />
+      </SignedOut>
+      <SignedIn>
+        <UserButton />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="container mx-auto p-4">
+            <div className="grid lg:grid-cols-2 gap-4">
+              <Card>
+                <CardContent className="space-y-4 pt-6">
+                  <h2 className="text-2xl font-bold">Sample Text</h2>
+                  {selectedText && (
+                    <MedicalTextCard
+                      text={selectedText.text}
+                      task={selectedText.task}
+                      confidence={selectedText.confidence}
+                    />
+                  )}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Confidence Threshold</h3>
+                    <Slider
+                      min={0}
+                      max={1}
+                      step={0.1}
+                      value={[confidenceThreshold]}
+                      onValueChange={handleConfidenceThresholdChange}
+                      className='mb-2'
+                    />
+                    <span>{confidenceThreshold.toFixed(1)}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Samples to Annotate</h3>
+                    <Slider
+                      min={10}
+                      max={100}
+                      step={10}
+                      value={[samplesToAnnotate]}
+                      onValueChange={handleSamplesToAnnotateChange}
+                      className='mb-2'
+                    />
+                    <span>{samplesToAnnotate}</span>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="space-y-4 pt-6">
+                  <h2 className="text-2xl font-bold">Annotation</h2>
+                  {selectedText && (
+                    <AnnotationEditor
+                      text={selectedText.text}
+                      onSave={handleSave}
+                      status={status}
+                      setStatus={setStatus}
+                    />
+                  )}
+                  <div>
+                    <h3 className="text-lg font-semibold">Status</h3>
+                    {getStatusBadge()}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Remaining Annotations</h3>
+                    <span>{texts.length} / {samplesToAnnotate}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </SignedIn>
+    </>
   );
 }

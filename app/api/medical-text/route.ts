@@ -33,3 +33,38 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
+    const dataArray = Array.isArray(body) ? body : [body];
+
+    const createdTexts = [];
+
+    for (const item of dataArray) {
+      const { text, task, confidence } = item;
+      if (typeof text !== 'string' || typeof task !== 'string' || typeof confidence !== 'number') {
+        console.log('Validation failed for item:', item);
+        return NextResponse.json({ error: 'Invalid data types in one or more items' }, { status: 400 });
+      }
+
+      const newText = await prisma.medicalText.create({
+        data: {
+          text,
+          task,
+          confidence,
+          annotateTime: 0, 
+        },
+      });
+
+      createdTexts.push(newText);
+    }
+    return NextResponse.json(createdTexts, { status: 201 });
+  } catch (error) {
+    console.error('Detailed error:', error);  
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
+  }
+}

@@ -10,6 +10,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@clerk/nextjs": "^5.7.2",
     "@nextui-org/react": "^2.4.8",
     "@prisma/client": "^5.20.0",
     "@radix-ui/react-slider": "^1.2.1",
