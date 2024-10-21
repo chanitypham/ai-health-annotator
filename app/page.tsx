@@ -11,6 +11,7 @@ import {
   SignedOut,
   UserButton
 } from '@clerk/nextjs'
+import { Button } from '@/components/ui/button';
 
 interface MedicalText {
   id: string;
@@ -125,7 +126,11 @@ export default function AnnotatorPage() {
   return (
     <>
       <SignedOut>
-        <SignInButton />
+      <div className="flex items-center justify-center min-h-screen">
+        <Button className="text-center justify-center bg-[#6b63c9] text-white px-4 py-2 text-sm font-medium rounded-xl text-lg">
+          <SignInButton />
+        </Button>
+      </div>
       </SignedOut>
       <SignedIn>
         <UserButton />
