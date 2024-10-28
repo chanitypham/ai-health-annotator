@@ -127,7 +127,10 @@ export default function AnnotatorPage() {
     <>
       <SignedOut>
       <div className="flex items-center justify-center min-h-screen">
-        <Button className="text-center justify-center bg-[#6b63c9] text-white px-4 py-2 text-sm font-medium rounded-xl text-lg">
+        <Button className="text-center justify-center bg-[#B5B1E4] text-white px-4 py-2 text-sm font-medium rounded-xl text-lg">
+          <SignInButton />
+        </Button>
+        <Button className="text-center justify-center bg-[#6b63c9] text-white px-4 py-2 text-sm font-medium rounded-xl text-lg custom-hover" disabled>
           <SignInButton />
         </Button>
       </div>
