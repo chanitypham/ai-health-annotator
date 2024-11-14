@@ -1,36 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
-  const confidenceThreshold = parseFloat(url.searchParams.get('confidenceThreshold') || '0.6');
+  const confidenceThreshold = parseFloat(
+    url.searchParams.get("confidenceThreshold") || "0.6"
+  );
 
   try {
     const texts = await prisma.medicalText.findMany({
       where: { confidence: { lte: confidenceThreshold } },
-      orderBy: { confidence: 'asc' },
+      orderBy: { confidence: "asc" },
     });
+
     return NextResponse.json(texts);
   } catch (error) {
-    console.error('Error fetching data:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
-  }
-}
-
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const { id } = params;
-    const { text, annotateTime } = await req.json();
-
-    const updatedText = await prisma.medicalText.update({
-      where: { id },
-      data: { text, annotateTime },
-    });
-
-    return NextResponse.json(updatedText);
-  } catch (error) {
-    console.error('Error updating medical text:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    console.error("Error fetching data:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
@@ -42,18 +28,37 @@ export async function POST(req: NextRequest) {
     const createdTexts = [];
 
     for (const item of dataArray) {
-      const { text, task, confidence } = item;
-      if (typeof text !== 'string' || typeof task !== 'string' || typeof confidence !== 'number') {
-        console.log('Validation failed for item:', item);
-        return NextResponse.json({ error: 'Invalid data types in one or more items' }, { status: 400 });
+      const {
+        text,
+        task,
+        annotator,
+        annotateReason,
+        annotateTime,
+        performance,
+      } = item;
+      if (
+        typeof text !== "string" ||
+        typeof task !== "string" ||
+        typeof performance !== "number"
+      ) {
+        console.log("Validation failed for item:", item);
+        return NextResponse.json(
+          { error: "Invalid data types in one or more items" },
+          { status: 400 }
+        );
       }
 
       const newText = await prisma.medicalText.create({
         data: {
           text,
           task,
-          confidence,
-          annotateTime: 0, 
+          confidence: 1.0,
+          performance, 
+          annotateReason,
+          annotator,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          annotateTime,
         },
       });
 
@@ -61,10 +66,13 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.json(createdTexts, { status: 201 });
   } catch (error) {
-    console.error('Detailed error:', error);  
+    console.error("Detailed error:", error);
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unknown error occurred" },
+      { status: 500 }
+    );
   }
 }
