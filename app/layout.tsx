@@ -6,9 +6,15 @@ import {
   SignInButton,
   SignedIn,
   SignedOut,
-  UserButton
-} from '@clerk/nextjs';
-import { Navbar, NavbarContent, NavbarItem, NavbarBrand, Button } from "@nextui-org/react";
+  UserButton,
+} from "@clerk/nextjs";
+import {
+  Navbar,
+  NavbarContent,
+  NavbarItem,
+  NavbarBrand,
+  Button,
+} from "@nextui-org/react";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -58,7 +64,14 @@ export default function RootLayout({
               </SignedIn>
             </NavbarContent>
           </Navbar>
-          {children}
+          <main>
+            <SignedOut>
+              <div className="flex items-center justify-center h-screen">
+                <p>Please sign in or sign up to access the application.</p>
+              </div>
+            </SignedOut>
+            <SignedIn>{children}</SignedIn>
+          </main>
         </body>
       </html>
     </ClerkProvider>
