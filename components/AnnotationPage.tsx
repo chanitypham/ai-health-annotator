@@ -106,7 +106,7 @@ export default function AnnotationPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center mx-48 mt-24">
       <div className="container mx-auto p-4">
         <div className="grid lg:grid-cols-2 gap-4">
           <Card>
