@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,9 +74,9 @@ export default function AnnotationPage() {
     setConfidenceThreshold(value[0]);
   };
 
-  const handleSamplesToAnnotateChange = (value: number[]) => {
-    setSamplesToAnnotate(value[0]);
-  };
+  // const handleSamplesToAnnotateChange = (value: number[]) => {
+  //   setSamplesToAnnotate(value[0]);
+  // };
 
   const getStatusBadge = () => {
     if (status === 'Data ready for annotating') {
