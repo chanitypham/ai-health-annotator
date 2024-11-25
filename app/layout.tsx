@@ -15,6 +15,7 @@ import {
   NavbarBrand,
   Button,
 } from "@nextui-org/react";
+import { LandingPage } from "@/components/LandingPage";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -52,7 +53,7 @@ export default function RootLayout({
                 <NavbarItem>
                   <div className="flex items-center justify-center min-h-screen">
                     <Button className="text-center justify-center bg-[#5AA676] text-white px-4 py-2 text-sm font-medium rounded-xl text-lg">
-                      <SignInButton />
+                      <SignInButton mode="modal" />
                     </Button>
                   </div>
                 </NavbarItem>
@@ -66,9 +67,7 @@ export default function RootLayout({
           </Navbar>
           <main>
             <SignedOut>
-              <div className="flex items-center justify-center h-screen">
-                <p>Please sign in or sign up to access the application.</p>
-              </div>
+              <LandingPage />
             </SignedOut>
             <SignedIn>{children}</SignedIn>
           </main>

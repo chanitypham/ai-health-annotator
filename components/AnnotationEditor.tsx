@@ -41,6 +41,7 @@ const AnnotationEditor: React.FC<AnnotationEditorProps> = ({
     setIsPaused(false);
   }, [text]);
 
+  // Handles start and stops for the timer
   useEffect(() => {
     if (isRunning && !isPaused) {
       intervalRef.current = setInterval(() => {
@@ -49,6 +50,7 @@ const AnnotationEditor: React.FC<AnnotationEditorProps> = ({
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
+
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -80,7 +82,6 @@ const AnnotationEditor: React.FC<AnnotationEditorProps> = ({
   const stopTimer = () => {
     setIsRunning(false);
     setIsPaused(false);
-    setSeconds(0);
   };
 
   const handleSubmit = () => {
